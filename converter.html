@@ -3,60 +3,47 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chuyển đổi Ma trận Mạng Vi ba [Đề tài số 3]</title>
+  <title>Chuyển đổi Ma trận Mạng Vi ba [Đề tài 3 - Mục 3.3]</title>
   <style>
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: #f1f5f9;
       color: #0f172a;
       margin: 0;
-      padding: 30px 15px;
+      padding: 25px 15px;
       display: flex;
       justify-content: center;
     }
     .card {
       background: #ffffff;
-      max-width: 780px;
+      max-width: 900px;
       width: 100%;
       border-radius: 10px;
       box-shadow: 0 4px 15px rgba(0,0,0,0.06);
       padding: 28px;
       box-sizing: border-box;
     }
-    h2 {
-      color: #1e3a8a;
-      margin: 0 0 8px 0;
-      text-align: center;
-      font-size: 24px;
-    }
-    .subtitle {
-      text-align: center;
-      color: #64748b;
-      font-size: 14px;
-      margin-bottom: 24px;
-    }
-    .flex-row {
-      display: flex;
-      gap: 16px;
-      margin-bottom: 16px;
-    }
-    .flex-col {
-      flex: 1;
-    }
-    label {
-      font-weight: 600;
-      font-size: 14px;
-      display: block;
-      margin-bottom: 6px;
-    }
+    h2 { color: #1e3a8a; margin: 0 0 6px 0; text-align: center; font-size: 22px; }
+    .subtitle { text-align: center; color: #64748b; font-size: 13.5px; margin-bottom: 20px; }
+    .row { display: flex; gap: 14px; margin-bottom: 15px; }
+    .col { flex: 1; }
+    label { font-weight: 600; font-size: 13.5px; display: block; margin-bottom: 5px; }
     select, input {
       width: 100%;
-      padding: 10px 12px;
+      padding: 9px 11px;
       border: 1px solid #cbd5e1;
       border-radius: 6px;
       font-size: 14px;
       box-sizing: border-box;
     }
+    .sample-box {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 16px;
+    }
+    .sample-box b { color: #1d4ed8; font-size: 13.5px; }
     .matrix-box {
       background: #f8fafc;
       border: 1px solid #e2e8f0;
@@ -64,86 +51,52 @@
       padding: 16px;
       margin-bottom: 16px;
     }
-    .matrix-grid {
+    #matrix-grid-container {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
+      gap: 10px;
+      margin-top: 10px;
+      overflow-x: auto;
     }
-    .matrix-grid input {
+    .grid-cell { text-align: center; }
+    .grid-cell small { display: block; font-size: 11px; color: #64748b; margin-bottom: 2px; }
+    .grid-cell input {
       text-align: center;
       font-family: Consolas, monospace;
       font-weight: 600;
-      color: #1e293b;
+      padding: 7px;
+      font-size: 13px;
     }
-    .actions {
-      display: flex;
-      gap: 10px;
-      margin-top: 10px;
-    }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
     button {
-      padding: 11px 16px;
-      font-size: 14px;
+      padding: 10px 14px;
+      font-size: 13.5px;
       font-weight: 600;
       border-radius: 6px;
       border: none;
       cursor: pointer;
       transition: all 0.2s ease;
     }
-    .btn-run {
-      background: #2563eb;
-      color: #fff;
-      flex: 2;
-    }
+    .btn-run { background: #2563eb; color: #fff; flex: 2; min-width: 180px; }
     .btn-run:hover { background: #1d4ed8; }
-    .btn-sec {
-      background: #e2e8f0;
-      color: #334155;
-      flex: 1;
-    }
-    .btn-sec:hover { background: #cbd5e1; }
+    .btn-sample { background: #e2e8f0; color: #1e293b; flex: 1; min-width: 160px; font-size: 12.5px; }
+    .btn-sample:hover { background: #cbd5e1; }
     .alert-error {
-      color: #b91c1c;
-      background: #fef2f2;
-      border: 1px solid #fecaca;
-      padding: 10px 14px;
-      border-radius: 6px;
-      margin-top: 14px;
-      display: none;
-      font-size: 14px;
+      color: #b91c1c; background: #fef2f2; border: 1px solid #fecaca;
+      padding: 10px 14px; border-radius: 6px; margin-top: 14px; display: none; font-size: 13.5px;
     }
     .results {
-      margin-top: 22px;
-      padding: 20px;
-      background: #f8fafc;
-      border: 1px solid #cbd5e1;
-      border-radius: 8px;
-      display: none;
+      margin-top: 22px; padding: 18px; background: #f8fafc;
+      border: 1px solid #cbd5e1; border-radius: 8px; display: none;
     }
-    .results h3 {
-      margin-top: 0;
-      color: #0f172a;
-      font-size: 18px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-bottom: 16px;
-    }
+    .results h3 { margin-top: 0; color: #0f172a; font-size: 17px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
     td {
-      border: 1px solid #cbd5e1;
-      padding: 9px;
-      text-align: center;
-      background: #fff;
-      font-family: Consolas, monospace;
-      font-size: 13px;
+      border: 1px solid #cbd5e1; padding: 8px; text-align: center;
+      background: #fff; font-family: Consolas, monospace; font-size: 12.5px;
     }
     .badge-box {
-      background: #eff6ff;
-      border-left: 4px solid #3b82f6;
-      padding: 12px 14px;
-      border-radius: 4px;
-      font-size: 13px;
-      line-height: 1.6;
+      background: #eff6ff; border-left: 4px solid #3b82f6;
+      padding: 12px 14px; border-radius: 4px; font-size: 13px; line-height: 1.6;
     }
   </style>
 </head>
@@ -151,38 +104,49 @@
 
 <div class="card">
   <h2>Phần mềm Chuyển đổi Ma trận Mạng Vi ba</h2>
-  <div class="subtitle">Tính toán chuyển đổi hai chiều [Y] ↔ [S] và [ABCD] ↔ [S] (Mạng 2 cửa)</div>
+  <div class="subtitle">Thực nghiệm mô phỏng và đối chứng theo Đề cương Mục 3.3 [Y] ↔ [S], [ABCD] ↔ [S]</div>
 
-  <div class="flex-row">
-    <div class="flex-col">
+  <!-- Nút nạp nhanh 3 kịch bản theo mục 3.3 -->
+  <div class="sample-box">
+    <b>Chọn kịch bản thực nghiệm mục 3.3 để nạp số liệu tự động:</b>
+    <div class="actions" style="margin-top: 8px;">
+      <button class="btn-sample" onclick="loadBenchmarkScenario('scenario1')">Kịch bản 1: Suy hao 3dB (N=2, [Y]→[S])</button>
+      <button class="btn-sample" onclick="loadBenchmarkScenario('scenario2')">Kịch bản 2: Bộ chia 3 cổng (N=3, [Y]→[S])</button>
+      <button class="btn-sample" onclick="loadBenchmarkScenario('scenario3')">Kịch bản 3: Dây λ/4 (N=2, [ABCD]→[S])</button>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col" style="flex: 2;">
       <label for="mode">Phép chuyển đổi:</label>
-      <select id="mode">
-        <option value="ABCD_TO_S">ABCD -> S</option>
-        <option value="S_TO_ABCD">S -> ABCD</option>
-        <option value="Y_TO_S">Y -> S</option>
-        <option value="S_TO_Y">S -> Y</option>
+      <select id="mode" onchange="onModeChange()">
+        <option value="Y_TO_S">Y -> S (Mạng N cửa)</option>
+        <option value="S_TO_Y">S -> Y (Mạng N cửa)</option>
+        <option value="ABCD_TO_S">ABCD -> S (Mạng 2 cửa)</option>
+        <option value="S_TO_ABCD">S -> ABCD (Mạng 2 cửa)</option>
       </select>
     </div>
-    <div class="flex-col">
+    <div class="col">
+      <label for="n-ports">Số cổng N:</label>
+      <select id="n-ports" onchange="renderMatrixGrid()">
+        <option value="2">N = 2</option>
+        <option value="3">N = 3</option>
+        <option value="4">N = 4</option>
+      </select>
+    </div>
+    <div class="col">
       <label for="z0">Trở kháng chuẩn Z₀ (Ω):</label>
       <input type="number" id="z0" value="50" min="1" step="1">
     </div>
   </div>
 
   <div class="matrix-box">
-    <label>Nhập ma trận nguồn (chấp nhận số thực hoặc số phức dạng a+bj):</label>
-    <div class="matrix-grid">
-      <div><small>Phần tử [1,1]:</small><input type="text" id="m11" value="0"></div>
-      <div><small>Phần tử [1,2]:</small><input type="text" id="m12" value="50j"></div>
-      <div><small>Phần tử [2,1]:</small><input type="text" id="m21" value="0.02j"></div>
-      <div><small>Phần tử [2,2]:</small><input type="text" id="m22" value="0"></div>
-    </div>
+    <label id="grid-label">Nhập ma trận nguồn (hỗ trợ số thực hoặc số phức dạng a+bj):</label>
+    <div id="matrix-grid-container"></div>
   </div>
 
   <div class="actions">
     <button class="btn-run" onclick="calculateMatrix()">Thực hiện Chuyển đổi</button>
-    <button class="btn-sec" onclick="loadSampleData('lambda4')">Mẫu Dây λ/4</button>
-    <button class="btn-sec" onclick="loadSampleData('attenuator')">Mẫu Suy hao 3dB</button>
   </div>
 
   <div id="err-box" class="alert-error"></div>
@@ -191,16 +155,10 @@
     <h3 id="res-header">Ma trận kết quả:</h3>
 
     <b>1. Biểu diễn Cartesian (R + jX):</b>
-    <table>
-      <tr><td id="r11-cart"></td><td id="r12-cart"></td></tr>
-      <tr><td id="r21-cart"></td><td id="r22-cart"></td></tr>
-    </table>
+    <div style="overflow-x:auto;"><table id="table-cart"></table></div>
 
     <b>2. Biểu diễn Cực (Biên độ ∠ Pha độ):</b>
-    <table>
-      <tr><td id="r11-pol"></td><td id="r12-pol"></td></tr>
-      <tr><td id="r21-pol"></td><td id="r22-pol"></td></tr>
-    </table>
+    <div style="overflow-x:auto;"><table id="table-polar"></table></div>
 
     <div class="badge-box" id="prop-view"></div>
   </div>
@@ -208,10 +166,7 @@
 
 <script>
 class Complex {
-  constructor(re, im = 0) {
-    this.re = re;
-    this.im = im;
-  }
+  constructor(re, im = 0) { this.re = re; this.im = im; }
   add(b) { return new Complex(this.re + b.re, this.im + b.im); }
   sub(b) { return new Complex(this.re - b.re, this.im - b.im); }
   mul(b) {
@@ -219,7 +174,7 @@ class Complex {
   }
   div(b) {
     const d = b.re * b.re + b.im * b.im;
-    if (d === 0) throw new Error("Mẫu số bằng 0 (chia cho 0)!");
+    if (d === 0) throw new Error("Mẫu số bằng 0!");
     return new Complex((this.re * b.re + this.im * b.im) / d, (this.im * b.re - this.re * b.im) / d);
   }
   abs() { return Math.hypot(this.re, this.im); }
@@ -234,7 +189,7 @@ class Complex {
   }
 }
 
-function parseInputComplex(str) {
+function parseComplex(str) {
   let s = (str || "").trim().replace(/\s+/g, '').replace(/i/g, 'j');
   if (!s) return new Complex(0, 0);
   if (s === 'j' || s === '+j') return new Complex(0, 1);
@@ -254,15 +209,81 @@ function parseInputComplex(str) {
   return new Complex(re, 0);
 }
 
-function invertMatrix2x2(a, b, c, d) {
-  const det = a.mul(d).sub(b.mul(c));
-  if (det.abs() < 1e-12) throw new Error("Ma trận suy biến, không thể nghịch đảo!");
-  return [
-    d.div(det),
-    new Complex(0, 0).sub(b).div(det),
-    new Complex(0, 0).sub(c).div(det),
-    a.div(det)
-  ];
+// Khử Gauss-Jordan nghịch đảo ma trận số phức N x N
+function invertComplexMatrix(A) {
+  const n = A.length;
+  const M = Array.from({ length: n }, (_, i) => 
+    Array.from({ length: 2 * n }, (_, j) => 
+      j < n ? new Complex(A[i][j].re, A[i][j].im) : (i === j - n ? new Complex(1, 0) : new Complex(0, 0))
+    )
+  );
+
+  for (let i = 0; i < n; i++) {
+    let pivot = i;
+    let maxVal = M[i][i].abs();
+    for (let k = i + 1; k < n; k++) {
+      if (M[k][i].abs() > maxVal) { maxVal = M[k][i].abs(); pivot = k; }
+    }
+    if (maxVal < 1e-12) throw new Error("Ma trận suy biến, không thể nghịch đảo!");
+    if (pivot !== i) { [M[i], M[pivot]] = [M[pivot], M[i]]; }
+
+    const pVal = M[i][i];
+    for (let j = 0; j < 2 * n; j++) { M[i][j] = M[i][j].div(pVal); }
+
+    for (let k = 0; k < n; k++) {
+      if (k !== i) {
+        const factor = M[k][i];
+        for (let j = 0; j < 2 * n; j++) {
+          M[k][j] = M[k][j].sub(factor.mul(M[i][j]));
+        }
+      }
+    }
+  }
+  return Array.from({ length: n }, (_, i) => M[i].slice(n));
+}
+
+function multiplyMatrix(A, B) {
+  const n = A.length;
+  const res = Array.from({ length: n }, () => Array(n).fill(null));
+  for (let i = 0; i < n; i++) {
+    for (let j = 0; j < n; j++) {
+      let sum = new Complex(0, 0);
+      for (let k = 0; k < n; k++) { sum = sum.add(A[i][k].mul(B[k][j])); }
+      res[i][j] = sum;
+    }
+  }
+  return res;
+}
+
+function onModeChange() {
+  const mode = document.getElementById("mode").value;
+  const nSelect = document.getElementById("n-ports");
+  if (mode.includes("ABCD")) {
+    nSelect.value = "2";
+    nSelect.disabled = true;
+  } else {
+    nSelect.disabled = false;
+  }
+  renderMatrixGrid();
+}
+
+function renderMatrixGrid() {
+  const N = parseInt(document.getElementById("n-ports").value);
+  const container = document.getElementById("matrix-grid-container");
+  container.style.gridTemplateColumns = `repeat(${N}, 1fr)`;
+  container.innerHTML = "";
+
+  for (let i = 1; i <= N; i++) {
+    for (let j = 1; j <= N; j++) {
+      const cell = document.createElement("div");
+      cell.className = "grid-cell";
+      cell.innerHTML = `
+        <small>M[${i},${j}]:</small>
+        <input type="text" id="m_${i}_${j}" value="${i === j ? '0' : '0'}">
+      `;
+      container.appendChild(cell);
+    }
+  }
 }
 
 function calculateMatrix() {
@@ -271,110 +292,130 @@ function calculateMatrix() {
   err.innerText = "";
 
   try {
+    const N = parseInt(document.getElementById("n-ports").value);
     const z0Val = parseFloat(document.getElementById("z0").value);
     if (!z0Val || z0Val <= 0) throw new Error("Trở kháng Z₀ phải là số dương lớn hơn 0!");
 
     const mode = document.getElementById("mode").value;
-    const a11 = parseInputComplex(document.getElementById("m11").value);
-    const a12 = parseInputComplex(document.getElementById("m12").value);
-    const a21 = parseInputComplex(document.getElementById("m21").value);
-    const a22 = parseInputComplex(document.getElementById("m22").value);
+    const inMat = Array.from({ length: N }, (_, i) => 
+      Array.from({ length: N }, (_, j) => 
+        parseComplex(document.getElementById(`m_${i+1}_${j+1}`).value)
+      )
+    );
 
-    let res = [];
-    let sEval = [];
+    let outMat = [];
+    let sForCheck = [];
     let title = "";
 
-    if (mode === "ABCD_TO_S") {
+    if (mode === "Y_TO_S") {
+      const cz0 = new Complex(z0Val, 0);
+      const Ybar = inMat.map(row => row.map(val => val.mul(cz0)));
+      const I_plus_Y = Array.from({ length: N }, (_, i) => 
+        Array.from({ length: N }, (_, j) => 
+          i === j ? new Complex(1, 0).add(Ybar[i][j]) : Ybar[i][j]
+        )
+      );
+      const I_minus_Y = Array.from({ length: N }, (_, i) => 
+        Array.from({ length: N }, (_, j) => 
+          i === j ? new Complex(1, 0).sub(Ybar[i][j]) : new Complex(0, 0).sub(Ybar[i][j])
+        )
+      );
+      const invDenom = invertComplexMatrix(I_plus_Y);
+      outMat = multiplyMatrix(I_minus_Y, invDenom);
+      sForCheck = outMat;
+      title = `Ma trận Tán xạ [S] (${N} cổng):`;
+    } else if (mode === "S_TO_Y") {
+      const cz0 = new Complex(z0Val, 0);
+      const I_plus_S = Array.from({ length: N }, (_, i) => 
+        Array.from({ length: N }, (_, j) => 
+          i === j ? new Complex(1, 0).add(inMat[i][j]) : inMat[i][j]
+        )
+      );
+      const I_minus_S = Array.from({ length: N }, (_, i) => 
+        Array.from({ length: N }, (_, j) => 
+          i === j ? new Complex(1, 0).sub(inMat[i][j]) : new Complex(0, 0).sub(inMat[i][j])
+        )
+      );
+      const invDenom = invertComplexMatrix(I_plus_S);
+      const Ybar = multiplyMatrix(I_minus_S, invDenom);
+      outMat = Ybar.map(row => row.map(v => v.div(cz0)));
+      sForCheck = inMat;
+      title = `Ma trận Dẫn nạp [Y] (${N} cổng, đơn vị S):`;
+    } else if (mode === "ABCD_TO_S") {
       const z0 = new Complex(z0Val, 0);
-      const delta = a11.add(a12.div(z0)).add(a21.mul(z0)).add(a22);
-      const detT = a11.mul(a22).sub(a12.mul(a21));
+      const a = inMat[0][0], b = inMat[0][1], c = inMat[1][0], d = inMat[1][1];
+      const delta = a.add(b.div(z0)).add(c.mul(z0)).add(d);
+      const detT = a.mul(d).sub(b.mul(c));
 
-      const S11 = a11.add(a12.div(z0)).sub(a21.mul(z0)).sub(a22).div(delta);
-      const S12 = new Complex(2, 0).mul(detT).div(delta);
-      const S21 = new Complex(2, 0).div(delta);
-      const S22 = new Complex(0, 0).sub(a11).add(a12.div(z0)).sub(a21.mul(z0)).add(a22).div(delta);
-
-      res = [S11, S12, S21, S22];
-      sEval = res;
-      title = "Ma trận Tán xạ [S]:";
+      outMat = [
+        [a.add(b.div(z0)).sub(c.mul(z0)).sub(d).div(delta), new Complex(2, 0).mul(detT).div(delta)],
+        [new Complex(2, 0).div(delta), new Complex(0, 0).sub(a).add(b.div(z0)).sub(c.mul(z0)).add(d).div(delta)]
+      ];
+      sForCheck = outMat;
+      title = "Ma trận Tán xạ [S] (2 cổng):";
     } else if (mode === "S_TO_ABCD") {
       const z0 = new Complex(z0Val, 0);
-      const denom = new Complex(2, 0).mul(a21);
-      const detS = a11.mul(a22).sub(a12.mul(a21));
+      const s11 = inMat[0][0], s12 = inMat[0][1], s21 = inMat[1][0], s22 = inMat[1][1];
+      if (s21.abs() < 1e-12) throw new Error("S₂₁ ≈ 0 (cách ly), ma trận ABCD không xác định!");
+      const denom = new Complex(2, 0).mul(s21);
+      const detS = s11.mul(s22).sub(s12.mul(s21));
       const one = new Complex(1, 0);
 
-      const A = one.add(a11).mul(one.sub(a22)).add(a12.mul(a21)).div(denom);
-      const B = z0.mul(one.add(a11).mul(one.add(a22)).sub(a12.mul(a21))).div(denom);
-      const C = (one.div(z0)).mul(one.sub(a11).mul(one.sub(a22)).sub(a12.mul(a21))).div(denom);
-      const D = one.sub(a11).mul(one.add(a22)).add(a12.mul(a21)).div(denom);
-
-      res = [A, B, C, D];
-      sEval = [a11, a12, a21, a22];
-      title = "Ma trận Cascade [ABCD]:";
-    } else if (mode === "Y_TO_S") {
-      const z0 = new Complex(z0Val, 0);
-      const one = new Complex(1, 0);
-      const zero = new Complex(0, 0);
-
-      const yb11 = a11.mul(z0), yb12 = a12.mul(z0);
-      const yb21 = a21.mul(z0), yb22 = a22.mul(z0);
-
-      const inv = invertMatrix2x2(one.add(yb11), yb12, yb21, one.add(yb22));
-      const n11 = one.sub(yb11), n12 = zero.sub(yb12);
-      const n21 = zero.sub(yb21), n22 = one.sub(yb22);
-
-      res = [
-        n11.mul(inv[0]).add(n12.mul(inv[2])),
-        n11.mul(inv[1]).add(n12.mul(inv[3])),
-        n21.mul(inv[0]).add(n22.mul(inv[2])),
-        n21.mul(inv[1]).add(n22.mul(inv[3]))
+      outMat = [
+        [one.add(s11).mul(one.sub(s22)).add(s12.mul(s21)).div(denom), z0.mul(one.add(s11).mul(one.add(s22)).sub(detS)).div(denom)],
+        [(one.div(z0)).mul(one.sub(s11).mul(one.sub(s22)).sub(detS)).div(denom), one.sub(s11).mul(one.add(s22)).add(s12.mul(s21)).div(denom)]
       ];
-      sEval = res;
-      title = "Ma trận Tán xạ [S]:";
-    } else if (mode === "S_TO_Y") {
-      const z0 = new Complex(z0Val, 0);
-      const one = new Complex(1, 0);
-      const zero = new Complex(0, 0);
-
-      const inv = invertMatrix2x2(one.add(a11), a12, a21, one.add(a22));
-      const n11 = one.sub(a11), n12 = zero.sub(a12);
-      const n21 = zero.sub(a21), n22 = one.sub(a22);
-
-      const yb11 = n11.mul(inv[0]).add(n12.mul(inv[2]));
-      const yb12 = n11.mul(inv[1]).add(n12.mul(inv[3]));
-      const yb21 = n21.mul(inv[0]).add(n22.mul(inv[2]));
-      const yb22 = n21.mul(inv[1]).add(n22.mul(inv[3]));
-
-      res = [yb11.div(z0), yb12.div(z0), yb21.div(z0), yb22.div(z0)];
-      sEval = [a11, a12, a21, a22];
-      title = "Ma trận Dẫn nạp [Y] (S):";
+      sForCheck = inMat;
+      title = "Ma trận Truyền đạt [ABCD] (2 cổng):";
     }
 
-    renderOutput(res, title, sEval);
+    renderResults(outMat, title, sForCheck, N);
   } catch (ex) {
     err.innerText = "Lỗi tính toán: " + ex.message;
     err.style.display = "block";
   }
 }
 
-function renderOutput(out, title, s) {
+function renderResults(out, title, s, N) {
   document.getElementById("res-header").innerText = title;
+  const tCart = document.getElementById("table-cart");
+  const tPol = document.getElementById("table-polar");
+  tCart.innerHTML = "";
+  tPol.innerHTML = "";
 
-  document.getElementById("r11-cart").innerText = out[0].toString();
-  document.getElementById("r12-cart").innerText = out[1].toString();
-  document.getElementById("r21-cart").innerText = out[2].toString();
-  document.getElementById("r22-cart").innerText = out[3].toString();
+  for (let i = 0; i < N; i++) {
+    const trC = document.createElement("tr");
+    const trP = document.createElement("tr");
+    for (let j = 0; j < N; j++) {
+      const tdC = document.createElement("td");
+      tdC.innerText = out[i][j].toString();
+      trC.appendChild(tdC);
 
-  document.getElementById("r11-pol").innerText = out[0].toPolar();
-  document.getElementById("r12-pol").innerText = out[1].toPolar();
-  document.getElementById("r21-pol").innerText = out[2].toPolar();
-  document.getElementById("r22-pol").innerText = out[3].toPolar();
+      const tdP = document.createElement("td");
+      tdP.innerText = out[i][j].toPolar();
+      trP.appendChild(tdP);
+    }
+    tCart.appendChild(trC);
+    tPol.appendChild(trP);
+  }
 
-  const isReciprocal = s[1].sub(s[2]).abs() < 1e-4;
-  const isSymmetric = isReciprocal && (s[0].sub(s[3]).abs() < 1e-4);
-  const p1 = s[0].abs()**2 + s[2].abs()**2;
-  const p2 = s[1].abs()**2 + s[3].abs()**2;
-  const isLossless = Math.abs(p1 - 1) < 1e-4 && Math.abs(p2 - 1) < 1e-4;
+  // Đánh giá tính chất mạng vi ba
+  let isReciprocal = true;
+  for (let i = 0; i < N; i++) {
+    for (let j = i + 1; j < N; j++) {
+      if (s[i][j].sub(s[j][i]).abs() > 1e-4) isReciprocal = false;
+    }
+  }
+  let isSymmetric = isReciprocal;
+  for (let i = 1; i < N; i++) {
+    if (s[i][i].sub(s[0][0]).abs() > 1e-4) isSymmetric = false;
+  }
+  let isLossless = true;
+  for (let j = 0; j < N; j++) {
+    let colPower = 0;
+    for (let i = 0; i < N; i++) { colPower += s[i][j].abs() ** 2; }
+    if (Math.abs(colPower - 1.0) > 1e-4) isLossless = false;
+  }
 
   document.getElementById("prop-view").innerHTML = `
     <b>Đánh giá tính chất mạng vi ba:</b><br>
@@ -382,27 +423,45 @@ function renderOutput(out, title, s) {
     • Tính đối xứng (Symmetrical): <b>${isSymmetric ? "CÓ" : "KHÔNG"}</b><br>
     • Tính không tiêu tán (Lossless): <b>${isLossless ? "CÓ" : "KHÔNG"}</b>
   `;
-
   document.getElementById("res-container").style.display = "block";
 }
 
-function loadSampleData(type) {
-  if (type === 'lambda4') {
-    document.getElementById("mode").value = "ABCD_TO_S";
-    document.getElementById("m11").value = "0";
-    document.getElementById("m12").value = "50j";
-    document.getElementById("m21").value = "0.02j";
-    document.getElementById("m22").value = "0";
-  } else if (type === 'attenuator') {
+function loadBenchmarkScenario(scenario) {
+  if (scenario === 'scenario1') {
     document.getElementById("mode").value = "Y_TO_S";
-    document.getElementById("m11").value = "0.06024";
-    document.getElementById("m12").value = "-0.05682";
-    document.getElementById("m21").value = "-0.05682";
-    document.getElementById("m22").value = "0.06024";
+    document.getElementById("n-ports").value = "2";
+    onModeChange();
+    document.getElementById("m_1_1").value = "0.06024";
+    document.getElementById("m_1_2").value = "-0.05682";
+    document.getElementById("m_2_1").value = "-0.05682";
+    document.getElementById("m_2_2").value = "0.06024";
+  } else if (scenario === 'scenario2') {
+    document.getElementById("mode").value = "Y_TO_S";
+    document.getElementById("n-ports").value = "3";
+    onModeChange();
+    const vals = [
+      ["-0.02j", "0.01j", "0.01j"],
+      ["0.01j", "-0.02j", "0.01j"],
+      ["0.01j", "0.01j", "-0.02j"]
+    ];
+    for (let i = 1; i <= 3; i++) {
+      for (let j = 1; j <= 3; j++) {
+        document.getElementById(`m_${i}_${j}`).value = vals[i-1][j-1];
+      }
+    }
+  } else if (scenario === 'scenario3') {
+    document.getElementById("mode").value = "ABCD_TO_S";
+    onModeChange();
+    document.getElementById("m_1_1").value = "0";
+    document.getElementById("m_1_2").value = "50j";
+    document.getElementById("m_2_1").value = "0.02j";
+    document.getElementById("m_2_2").value = "0";
   }
   calculateMatrix();
 }
-</script>
 
+// Khởi chạy lưới ban đầu
+onModeChange();
+</script>
 </body>
 </html>
