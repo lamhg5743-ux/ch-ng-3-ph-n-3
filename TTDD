@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mô phỏng AI Tối ưu Beamforming - Massive MIMO 5G</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --primary: #1d4ed8;
+      --primary-hover: #1e40af;
+      --accent: #0f766e;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+    }
+    * { box-sizing: border-box; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+    body { margin: 0; background: var(--bg); color: var(--text); }
+    header {
+      background: linear-gradient(135deg, #0f172a, #1e3a8a);
+      color: #fff;
+      padding: 20px 28px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+    }
+    header h1 { margin: 0 0 6px; font-size: 1.45rem; }
+    header p { margin: 0; color: #cbd5e1; font-size: 0.92rem; }
+    .container { max-width: 1320px; margin: 22px auto; padding: 0 18px; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+      margin-bottom: 20px;
+    }
+    .card h2 {
+      margin: 0 0 14px;
+      font-size: 1.08rem;
+      color: #0f172a;
+      border-left: 4px solid var(--primary);
+      padding-left: 10px;
+    }
+    .controls-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+      align-items: end;
+    }
+    .control-group label {
+      display: block;
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 5px;
+    }
+    select, input[type="range"] {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.92rem;
+      background: #fff;
+    }
+    button.btn-run {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 18px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      width: 100%;
+    }
+    button.btn-run:hover { background: var(--primary-hover); }
+    button.btn-run:disabled { background: #94a3b8; cursor: not-allowed; }
+    .status-bar {
+      margin-top: 12px;
+      font-size: 0.88rem;
+      color: var(--accent);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .progress-wrap {
+      flex: 1;
+      height: 8px;
+      background: #e2e8f0;
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #2563eb, #10b981);
+      transition: width 0.15s;
+    }
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .kpi-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 15px 18px;
+    }
+    .kpi-box .kpi-title { font-size: 0.82rem; color: var(--muted); font-weight: 600; }
+    .kpi-box .kpi-val { font-size: 1.5rem; font-weight: 700; color: var(--primary); margin: 6px 0 2px; }
+    .kpi-box .kpi-sub { font-size: 0.8rem; color: #475569; }
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(390px, 1fr));
+      gap: 20px;
+    }
+    .chart-box { position: relative; height: 320px; width: 100%; }
+    .beam-slider-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+      font-size: 0.88rem;
+      font-weight: 600;
+    }
+    table.summary-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      margin-top: 8px;
+    }
+    table.summary-table th, table.summary-table td {
+      border: 1px solid var(--border);
+      padding: 9px 12px;
+      text-align: center;
+    }
+    table.summary-table th { background: #f1f5f9; color: #0f172a; }
+    footer { text-align: center; padding: 18px; color: var(--muted); font-size: 0.84rem; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Đề tài 6: AI Tối ưu Beamforming cho Hệ thống Massive MIMO 5G</h1>
+  <p>Mô phỏng tương tác DFT Codebook, kênh đa đường Saleh-Valenzuela và mạng học sâu (DNN) dự đoán chùm tia tối ưu</p>
+</header>
+
+<div class="container">
+  <!-- BẢNG THAM SỐ ĐIỀU KHIỂN -->
+  <div class="card">
+    <h2>1. Cấu hình tham số hệ thống & Mô hình AI</h2>
+    <div class="controls-grid">
+      <div class="control-group">
+        <label for="ntSelect">Số anten trạm gốc BS (Nt = M)</label>
+        <select id="ntSelect">
+          <option value="32">32 anten (32 beams)</option>
+          <option value="64" selected>64 anten (64 beams)</option>
+          <option value="128">128 anten (128 beams)</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label for="kSelect">Số người dùng đồng thời (K UE)</label>
+        <select id="kSelect">
+          <option value="2">2 UE</option>
+          <option value="4" selected>4 UE</option>
+          <option value="8">8 UE</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label for="lSelect">Số đường đa đường (L paths)</label>
+        <select id="lSelect">
+          <option value="1">1 (Chỉ có đường LOS)</option>
+          <option value="3" selected>3 (1 LOS + 2 NLOS)</option>
+          <option value="5">5 (1 LOS + 4 NLOS)</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label for="samplesSelect">Số mẫu huấn luyện AI</label>
+        <select id="samplesSelect">
+          <option value="1500">1.500 mẫu (Nhanh)</option>
+          <option value="3000" selected>3.000 mẫu (Cân bằng)</option>
+          <option value="5000">5.000 mẫu (Chính xác cao)</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label for="epochsSelect">Số vòng lặp huấn luyện (Epochs)</label>
+        <select id="epochsSelect">
+          <option value="25">25 Epochs</option>
+          <option value="40" selected>40 Epochs</option>
+          <option value="60">60 Epochs</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <button id="runBtn" class="btn-run">Chạy Huấn luyện & Mô phỏng</button>
+      </div>
+    </div>
+    <div class="status-bar">
+      <span id="statusText">Sẵn sàng. Nhấn "Chạy Huấn luyện & Mô phỏng" để bắt đầu.</span>
+      <div class="progress-wrap"><div id="progressFill" class="progress-fill"></div></div>
+    </div>
+  </div>
+
+  <!-- CHỈ SỐ KPI TỔNG HỢP -->
+  <div class="kpi-grid">
+    <div class="kpi-box">
+      <div class="kpi-title">Độ chính xác AI (Top-1 Accuracy)</div>
+      <div class="kpi-val" id="kpiTop1">-- %</div>
+      <div class="kpi-sub">Dự đoán đúng ngay beam tối ưu nhất</div>
+    </div>
+    <div class="kpi-box">
+      <div class="kpi-title">Độ chính xác AI (Top-3 Accuracy)</div>
+      <div class="kpi-val" id="kpiTop3">-- %</div>
+      <div class="kpi-sub">Beam tối ưu nằm trong 3 gợi ý đầu</div>
+    </div>
+    <div class="kpi-box">
+      <div class="kpi-title">Hiệu suất Sum-rate (tại SNR = 10 dB)</div>
+      <div class="kpi-val" id="kpiRateRatio">-- %</div>
+      <div class="kpi-sub" id="kpiRateSub">So với thuật toán tìm kiếm vét cạn</div>
+    </div>
+    <div class="kpi-box">
+      <div class="kpi-title">Tốc độ xử lý 1.000 mẫu kênh</div>
+      <div class="kpi-val" id="kpiSpeedup">-- ms</div>
+      <div class="kpi-sub" id="kpiTimeSub">Vét cạn: -- ms | AI: -- ms</div>
+    </div>
+  </div>
+
+  <!-- 3 ĐỒ THỊ CHÍNH -->
+  <div class="charts-grid">
+    <div class="card">
+      <h2>2. Đồ thị bức xạ DFT Codebook (Beam Pattern)</h2>
+      <div class="beam-slider-row">
+        <span>Chọn chỉ số chùm tia (Beam Index):</span>
+        <input type="range" id="beamSlider" min="0" max="63" value="8" style="flex:1" />
+        <span id="beamIdxLabel" style="min-width:48px; color:#1d4ed8;">#8</span>
+      </div>
+      <div class="chart-box"><canvas id="beamChart"></canvas></div>
+    </div>
+
+    <div class="card">
+      <h2>3. Quá trình hội tụ mô hình AI (Loss & Accuracy)</h2>
+      <div class="chart-box"><canvas id="trainChart"></canvas></div>
+    </div>
+
+    <div class="card">
+      <h2>4. So sánh Sum-rate: AI vs. Tìm kiếm vét cạn</h2>
+      <div class="chart-box"><canvas id="rateChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- BẢNG SỐ LIỆU CHI TIẾT -->
+  <div class="card">
+    <h2>5. Bảng tổng hợp kết quả định lượng theo từng mức SNR</h2>
+    <table class="summary-table">
+      <thead>
+        <tr>
+          <th>SNR (dB)</th>
+          <th>Vét cạn - Sum-rate (bps/Hz)</th>
+          <th>AI (DNN) - Sum-rate (bps/Hz)</th>
+          <th>Chọn ngẫu nhiên (bps/Hz)</th>
+          <th>Tỷ lệ đạt chuẩn AI / Vét cạn (%)</th>
+        </tr>
+      </thead>
+      <tbody id="resultTableBody">
+        <tr><td colspan="5" style="color:#64748b;">Chưa có dữ liệu mô phỏng</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<footer>
+  Mô phỏng kỹ thuật Thông tin di động 5G — Massive MIMO & AI Beamforming
+</footer>
+
+<script>
+// =========================================================
+// 1. TOÁN HỌC MẢNG ANTEN, DFT CODEBOOK & KÊNH ĐA ĐƯỜNG
+// =========================================================
+function randn() {
+  let u = 0, v = 0;
+  while (u === 0) u = Math.random();
+  while (v === 0) v = Math.random();
+  return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+}
+
+function steeringVector(Nt, theta) {
+  const re = new Float64Array(Nt);
+  const im = new Float64Array(Nt);
+  const scale = 1.0 / Math.sqrt(Nt);
+  const sinTh = Math.sin(theta);
+  for (let n = 0; n < Nt; n++) {
+    const phase = -Math.PI * n * sinTh;
+    re[n] = scale * Math.cos(phase);
+    im[n] = scale * Math.sin(phase);
+  }
+  return { re, im };
+}
+
+function createDFTCodebook(Nt, M) {
+  const W = [];
+  const scale = 1.0 / Math.sqrt(Nt);
+  for (let m = 0; m < M; m++) {
+    const re = new Float64Array(Nt);
+    const im = new Float64Array(Nt);
+    for (let n = 0; n < Nt; n++) {
+      const phase = (-2.0 * Math.PI * n * m) / M;
+      re[n] = scale * Math.cos(phase);
+      im[n] = scale * Math.sin(phase);
+    }
+    W.push({ re, im });
+  }
+  return W;
+}
+
+function beamGain(w, h) {
+  let dotRe = 0.0, dotIm = 0.0;
+  const Nt = w.re.length;
+  for (let n = 0; n < Nt; n++) {
+    dotRe += w.re[n] * h.re[n] + w.im[n] * h.im[n];
+    dotIm += w.re[n] * h.im[n] - w.im[n] * h.re[n];
+  }
+  return dotRe * dotRe + dotIm * dotIm;
+}
+
+function generateChannel(Nt, L) {
+  const re = new Float64Array(Nt);
+  const im = new Float64Array(Nt);
+  const normFactor = Math.sqrt(Nt / L);
+  for (let l = 0; l < L; l++) {
+    const weight = (l === 0) ? 2.8 : 1.0; // Đường LOS mạnh hơn NLOS
+    const aRe = (randn() / Math.SQRT2) * weight;
+    const aIm = (randn() / Math.SQRT2) * weight;
+    const theta = (Math.random() - 0.5) * Math.PI;
+    const sv = steeringVector(Nt, theta);
+    for (let n = 0; n < Nt; n++) {
+      re[n] += normFactor * (aRe * sv.re[n] - aIm * sv.im[n]);
+      im[n] += normFactor * (aRe * sv.im[n] + aIm * sv.re[n]);
+    }
+  }
+  return { re, im };
+}
+
+function extractFeatures(hEst, Nt) {
+  // Chuẩn hóa pha theo phần tử anten 0 để khử xoay pha ngẫu nhiên
+  const phase0 = Math.atan2(hEst.im[0], hEst.re[0]);
+  const cosP = Math.cos(-phase0);
+  const sinP = Math.sin(-phase0);
+  const feat = new Float32Array(2 * Nt);
+  let normSq = 0.0;
+  for (let n = 0; n < Nt; n++) {
+    const r = hEst.re[n] * cosP - hEst.im[n] * sinP;
+    const im = hEst.re[n] * sinP + hEst.im[n] * cosP;
+    feat[n] = r;
+    feat[Nt + n] = im;
+    normSq += r * r + im * im;
+  }
+  const invNorm = 1.0 / (Math.sqrt(normSq) + 1e-8);
+  for (let i = 0; i < 2 * Nt; i++) feat[i] *= invNorm;
+  return feat;
+}
+
+function exhaustiveSearch(W, h) {
+  let bestIdx = 0;
+  let bestGain = -1.0;
+  for (let m = 0; m < W.length; m++) {
+    const g = beamGain(W[m], h);
+    if (g > bestGain) {
+      bestGain = g;
+      bestIdx = m;
+    }
+  }
+  return bestIdx;
+}
+
+// =========================================================
+// 2. MẠNG NƠ-RON SÂU (DNN) & BỘ TỐI ƯU ADAM TRÊN JAVASCRIPT
+// =========================================================
+class BeamDNN {
+  constructor(inDim, outDim) {
+    this.inDim = inDim;
+    this.h1 = 128;
+    this.h2 = 128;
+    this.outDim = outDim;
+
+    this.W1 = this.initMat(inDim, this.h1, Math.sqrt(2.0 / inDim));
+    this.b1 = new Float32Array(this.h1);
+    this.W2 = this.initMat(this.h1, this.h2, Math.sqrt(2.0 / this.h1));
+    this.b2 = new Float32Array(this.h2);
+    this.W3 = this.initMat(this.h2, outDim, Math.sqrt(2.0 / this.h2));
+    this.b3 = new Float32Array(outDim);
+
+    this.params = [this.W1, this.b1, this.W2, this.b2, this.W3, this.b3];
+    this.m = this.params.map(p => new Float32Array(p.length));
+    this.v = this.params.map(p => new Float32Array(p.length));
+    this.t = 0;
+  }
+
+  initMat(rows, cols, scale) {
+    const arr = new Float32Array(rows * cols);
+    for (let i = 0; i < arr.length; i++) arr[i] = randn() * scale;
+    return arr;
+  }
+
+  predictLogits(x) {
+    const a1 = new Float32Array(this.h1);
+    for (let j = 0; j < this.h1; j++) {
+      let s = this.b1[j];
+      for (let i = 0; i < this.inDim; i++) s += x[i] * this.W1[i * this.h1 + j];
+      a1[j] = s > 0 ? s : 0;
+    }
+    const a2 = new Float32Array(this.h2);
+    for (let j = 0; j < this.h2; j++) {
+      let s = this.b2[j];
+      for (let i = 0; i < this.h1; i++) s += a1[i] * this.W2[i * this.h2 + j];
+      a2[j] = s > 0 ? s : 0;
+    }
+    const logits = new Float32Array(this.outDim);
+    for (let j = 0; j < this.outDim; j++) {
+      let s = this.b3[j];
+      for (let i = 0; i < this.h2; i++) s += a2[i] * this.W3[i * this.outDim + j];
+      logits[j] = s;
+    }
+    return logits;
+  }
+
+  predictTopK(x, k = 3) {
+    const logits = this.predictLogits(x);
+    const indices = Array.from({ length: this.outDim }, (_, i) => i);
+    indices.sort((a, b) => logits[b] - logits[a]);
+    return indices.slice(0, k);
+  }
+
+  trainBatch(batchX, batchY, lr = 0.004) {
+    const B = batchX.length;
+    const gW1 = new Float32Array(this.W1.length);
+    const gb1 = new Float32Array(this.b1.length);
+    const gW2 = new Float32Array(this.W2.length);
+    const gb2 = new Float32Array(this.b2.length);
+    const gW3 = new Float32Array(this.W3.length);
+    const gb3 = new Float32Array(this.b3.length);
+
+    let batchLoss = 0.0;
+    const z1 = new Float32Array(this.h1);
+    const a1 = new Float32Array(this.h1);
+    const z2 = new Float32Array(this.h2);
+    const a2 = new Float32Array(this.h2);
+    const logits = new Float32Array(this.outDim);
+    const probs = new Float32Array(this.outDim);
+
+    for (let b = 0; b < B; b++) {
+      const x = batchX[b];
+      const y = batchY[b];
+
+      // Forward
+      for (let j = 0; j < this.h1; j++) {
+        let s = this.b1[j];
+        for (let i = 0; i < this.inDim; i++) s += x[i] * this.W1[i * this.h1 + j];
+        z1[j] = s;
+        a1[j] = s > 0 ? s : 0;
+      }
+      for (let j = 0; j < this.h2; j++) {
+        let s = this.b2[j];
+        for (let i = 0; i < this.h1; i++) s += a1[i] * this.W2[i * this.h2 + j];
+        z2[j] = s;
+        a2[j] = s > 0 ? s : 0;
+      }
+      let maxL = -Infinity;
+      for (let j = 0; j < this.outDim; j++) {
+        let s = this.b3[j];
+        for (let i = 0; i < this.h2; i++) s += a2[i] * this.W3[i * this.outDim + j];
+        logits[j] = s;
+        if (s > maxL) maxL = s;
+      }
+      let sumExp = 0.0;
+      for (let j = 0; j < this.outDim; j++) {
+        probs[j] = Math.exp(logits[j] - maxL);
+        sumExp += probs[j];
+      }
+      for (let j = 0; j < this.outDim; j++) probs[j] /= sumExp;
+      batchLoss -= Math.log(Math.max(probs[y], 1e-9));
+
+      // Backward
+      const dLogits = probs;
+      dLogits[y] -= 1.0;
+
+      const da2 = new Float32Array(this.h2);
+      for (let j = 0; j < this.outDim; j++) {
+        const dl = dLogits[j] / B;
+        gb3[j] += dl;
+        for (let i = 0; i < this.h2; i++) {
+          gW3[i * this.outDim + j] += a2[i] * dl;
+          da2[i] += dl * this.W3[i * this.outDim + j];
+        }
+      }
+
+      const da1 = new Float32Array(this.h1);
+      for (let j = 0; j < this.h2; j++) {
+        if (z2[j] <= 0) continue;
+        const dz = da2[j];
+        gb2[j] += dz;
+        for (let i = 0; i < this.h1; i++) {
+          gW2[i * this.h2 + j] += a1[i] * dz;
+          da1[i] += dz * this.W2[i * this.h2 + j];
+        }
+      }
+
+      for (let j = 0; j < this.h1; j++) {
+        if (z1[j] <= 0) continue;
+        const dz = da1[j];
+        gb1[j] += dz;
+        for (let i = 0; i < this.inDim; i++) {
+          gW1[i * this.h1 + j] += x[i] * dz;
+        }
+      }
+    }
+
+    // Adam Update
+    this.t += 1;
+    const grads = [gW1, gb1, gW2, gb2, gW3, gb3];
+    const b1Pow = 1.0 - Math.pow(0.9, this.t);
+    const b2Pow = 1.0 - Math.pow(0.999, this.t);
+    for (let k = 0; k < this.params.length; k++) {
+      const p = this.params[k];
+      const g = grads[k];
+      const m = this.m[k];
+      const v = this.v[k];
+      for (let i = 0; i < p.length; i++) {
+        m[i] = 0.9 * m[i] + 0.1 * g[i];
+        v[i] = 0.999 * v[i] + 0.001 * g[i] * g[i];
+        const mHat = m[i] / b1Pow;
+        const vHat = v[i] / b2Pow;
+        p[i] -= lr * mHat / (Math.sqrt(vHat) + 1e-8);
+      }
+    }
+    return batchLoss / B;
+  }
+}
+
+// =========================================================
+// 3. QUẢN LÝ BIỂU ĐỒ & KỊCH BẢN MÔ PHỎNG
+// =========================================================
+let beamChartObj = null, trainChartObj = null, rateChartObj = null;
+let currentW = null;
+
+function renderBeamPattern(Nt, beamIdx) {
+  if (!currentW || currentW.length !== Nt) currentW = createDFTCodebook(Nt, Nt);
+  const anglesDeg = [];
+  const gainsDb = [];
+  for (let deg = -90; deg <= 90; deg += 1) {
+    anglesDeg.push(deg);
+    const sv = steeringVector(Nt, (deg * Math.PI) / 180.0);
+    const g = beamGain(currentW[beamIdx], sv);
+    gainsDb.push(10 * Math.log10(Math.max(g, 1e-5)));
+  }
+
+  if (beamChartObj) beamChartObj.destroy();
+  beamChartObj = new Chart(document.getElementById("beamChart"), {
+    type: "line",
+    data: {
+      labels: anglesDeg,
+      datasets: [{
+        label: `Độ lợi búp sóng Beam #${beamIdx} (dB)`, data: gainsDb, borderColor: "#1d4ed8", backgroundColor: "rgba(29, 78, 216, 0.12)", borderWidth: 2, pointRadius: 0, fill: true }] }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { title: { display: true, text: "Góc phương vị (độ)" }, ticks: { maxTicksLimit: 10 } }, y: { title: { display: true, text: "Độ lợi (dB)" }, min: -35, max: 2 } } } }); }  function computeMultiUESumRate(H_K, W, beams, snrDb, K) { const P_k = Math.pow(10, snrDb / 10.0) / K; let sumRate = 0.0; for (let k = 0; k < K; k++) { const sig = P_k * beamGain(W[beams[k]], H_K[k]); let interf = 0.0; for (let j = 0; j < K; j++) { if (j !== k) interf += P_k * beamGain(W[beams[j]], H_K[k]); } sumRate += Math.log2(1.0 + sig / (interf + 1.0)); } return sumRate; }  async function runSimulation() { const btn = document.getElementById("runBtn"); const status = document.getElementById("statusText"); const prog = document.getElementById("progressFill"); btn.disabled = true;  const Nt = parseInt(document.getElementById("ntSelect").value); const M = Nt; const K = parseInt(document.getElementById("kSelect").value); const L = parseInt(document.getElementById("lSelect").value); const numSamples = parseInt(document.getElementById("samplesSelect").value); const epochs = parseInt(document.getElementById("epochsSelect").value);  const slider = document.getElementById("beamSlider"); slider.max = M - 1; if (parseInt(slider.value) >= M) slider.value = Math.floor(M / 4); document.getElementById("beamIdxLabel").textContent = `#${slider.value}`;
+  currentW = createDFTCodebook(Nt, M);
+  renderBeamPattern(Nt, parseInt(slider.value));
+
+  status.textContent = `Đang sinh ${numSamples} mẫu kênh CSI & nhãn tìm kiếm vét cạn...`;
+  prog.style.width = "10%";
+  await new Promise(r => setTimeout(r, 20));
+
+  const nTrain = Math.floor(numSamples * 0.8);
+  const nTest = numSamples - nTrain;
+  const X_tr = [], y_tr = [], X_te = [], y_te = [];
+
+  for (let i = 0; i < numSamples; i++) {
+    const h = generateChannel(Nt, L);
+    const bestBeam = exhaustiveSearch(currentW, h);
+    const snrDb = Math.random() * 22.0 - 2.0;
+    const nStd = Math.sqrt(Math.pow(10, -snrDb / 10.0) / 2.0);
+    const hEst = { re: new Float64Array(Nt), im: new Float64Array(Nt) };
+    for (let n = 0; n < Nt; n++) {
+      hEst.re[n] = h.re[n] + nStd * randn();
+      hEst.im[n] = h.im[n] + nStd * randn();
+    }
+    const feat = extractFeatures(hEst, Nt);
+    if (i < nTrain) { X_tr.push(feat); y_tr.push(bestBeam); }
+    else { X_te.push(feat); y_te.push(bestBeam); }
+  }
+
+  // Huấn luyện DNN
+  const model = new BeamDNN(2 * Nt, M);
+  const lossHist = [], accHist = [], epLabels = [];
+  const batchSize = 64;
+
+  for (let ep = 1; ep <= epochs; ep++) {
+    const perm = Array.from({ length: nTrain }, (_, i) => i);
+    for (let i = nTrain - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [perm[i], perm[j]] = [perm[j], perm[i]];
+    }
+    let epLoss = 0.0, batches = 0;
+    for (let start = 0; start < nTrain; start += batchSize) {
+      const bx = [], by = [];
+      for (let idx = start; idx < Math.min(start + batchSize, nTrain); idx++) {
+        bx.push(X_tr[perm[idx]]);
+        by.push(y_tr[perm[idx]]);
+      }
+      epLoss += model.trainBatch(bx, by, 0.004);
+      batches++;
+    }
+
+    let correct1 = 0;
+    for (let i = 0; i < nTest; i++) {
+      if (model.predictTopK(X_te[i], 1)[0] === y_te[i]) correct1++;
+    }
+    epLabels.push(ep);
+    lossHist.push((epLoss / batches).toFixed(3));
+    accHist.push(((correct1 / nTest) * 100).toFixed(1));
+
+    if (ep % 2 === 0 || ep === epochs) {
+      status.textContent = `Đang huấn luyện AI: Epoch ${ep}/${epochs} — Top-1 Acc:${accHist[accHist.length - 1]}%`;
+      prog.style.width = `${10 + Math.round((ep / epochs) * 75)}\%`; await new Promise(r => setTimeout(r, 0)); } }  // Vẽ biểu đồ huấn luyện if (trainChartObj) trainChartObj.destroy(); trainChartObj = new Chart(document.getElementById("trainChart"), { type: "line", data: { labels: epLabels, datasets: [ { label: "Training Loss", data: lossHist, borderColor: "#dc2626", yAxisID: "y", pointRadius: 0 }, { label: "Validation Top-1 Accuracy (\%)", data: accHist, borderColor: "#059669", yAxisID: "y1", pointRadius: 0 } ] }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { title: { display: true, text: "Epoch" } }, y: { type: "linear", position: "left", title: { display: true, text: "Cross-Entropy Loss" } }, y1: { type: "linear", position: "right", min: 0, max: 100, grid: { drawOnChartArea: false }, title: { display: true, text: "Accuracy (\%)" } } } } });  // Đánh giá Top-1 & Top-3 trên Test set let top1 = 0, top3 = 0; for (let i = 0; i < nTest; i++) { const preds = model.predictTopK(X_te[i], 3); if (preds[0] === y_te[i]) top1++; if (preds.includes(y_te[i])) top3++; } document.getElementById("kpiTop1").textContent = `${((top1 / nTest) * 100).toFixed(1)} %`;
+  document.getElementById("kpiTop3").textContent = `${((top3 / nTest) * 100).toFixed(1)} \%`;  // Đo thời gian suy luận 1.000 mẫu const benchH = Array.from({ length: 1000 }, () => generateChannel(Nt, L)); const benchX = benchH.map(h => extractFeatures(h, Nt)); const t0Exh = performance.now(); for (let i = 0; i < 1000; i++) exhaustiveSearch(currentW, benchH[i]); const timeExh = performance.now() - t0Exh;  const t0AI = performance.now(); for (let i = 0; i < 1000; i++) model.predictTopK(benchX[i], 1); const timeAI = performance.now() - t0AI;  document.getElementById("kpiSpeedup").textContent = `${(timeExh / Math.max(timeAI, 0.01)).toFixed(1)}x nhanh hơn`;
+  document.getElementById("kpiTimeSub").textContent = `Vét cạn: ${timeExh.toFixed(1)} ms | AI: ${timeAI.toFixed(1)} ms`;  // So sánh Sum-rate theo SNR status.textContent = "Đang mô phỏng kịch bản đa người dùng theo SNR..."; await new Promise(r => setTimeout(r, 10));  const snrList = [-10, -5, 0, 5, 10, 15, 20]; const rateExh = [], rateAI = [], rateRnd = []; const tbody = document.getElementById("resultTableBody"); tbody.innerHTML = ""; const nTrials = 220;  for (const snrDb of snrList) { const nStd = Math.sqrt(Math.pow(10, -snrDb / 10.0) / 2.0); let sExh = 0, sAI = 0, sRnd = 0; for (let tr = 0; tr < nTrials; tr++) { const H_K = [], bExh = [], bAI = [], bRnd = []; for (let k = 0; k < K; k++) { const hk = generateChannel(Nt, L); H_K.push(hk); bExh.push(exhaustiveSearch(currentW, hk));  const hEst = { re: new Float64Array(Nt), im: new Float64Array(Nt) }; for (let n = 0; n < Nt; n++) { hEst.re[n] = hk.re[n] + nStd * randn(); hEst.im[n] = hk.im[n] + nStd * randn(); } bAI.push(model.predictTopK(extractFeatures(hEst, Nt), 1)[0]); bRnd.push(Math.floor(Math.random() * M)); } sExh += computeMultiUESumRate(H_K, currentW, bExh, snrDb, K); sAI += computeMultiUESumRate(H_K, currentW, bAI, snrDb, K); sRnd += computeMultiUESumRate(H_K, currentW, bRnd, snrDb, K); } const avgExh = sExh / nTrials; const avgAI = sAI / nTrials; const avgRnd = sRnd / nTrials; rateExh.push(avgExh.toFixed(2)); rateAI.push(avgAI.toFixed(2)); rateRnd.push(avgRnd.toFixed(2));  const pct = ((avgAI / avgExh) * 100).toFixed(1); if (snrDb === 10) { document.getElementById("kpiRateRatio").textContent = `${pct} %`;
+      document.getElementById("kpiRateSub").textContent = `AI: ${avgAI.toFixed(2)} vs Vét cạn: ${avgExh.toFixed(2)} bps/Hz`;
+    }
+
+    tbody.innerHTML += `<tr>
+      <td><b>${snrDb} dB</b></td>
+      <td>${avgExh.toFixed(2)}</td>
+      <td style="color:#1d4ed8; font-weight:600;">${avgAI.toFixed(2)}</td>
+      <td>${avgRnd.toFixed(2)}</td>
+      <td><b>${pct}%</b></td>
+    </tr>`;
+  }
+
+  if (rateChartObj) rateChartObj.destroy();
+  rateChartObj = new Chart(document.getElementById("rateChart"), {
+    type: "line",
+    data: {
+      labels: snrList.map(s => `${s} dB`), datasets: [ { label: "Tìm kiếm vét cạn (Tối ưu)", data: rateExh, borderColor: "#0f172a", borderWidth: 2 }, { label: "AI Beam Selection (DNN)", data: rateAI, borderColor: "#dc2626", borderDash: [6, 4], borderWidth: 2.5 }, { label: "Chọn beam ngẫu nhiên", data: rateRnd, borderColor: "#64748b", borderDash: [2, 3], borderWidth: 1.5 } ] }, options: { responsive: true, maintainAspectRatio: false, scales: { x: { title: { display: true, text: "SNR (dB)" } }, y: { title: { display: true, text: "Sum-rate (bps/Hz)" } } } } });  prog.style.width = "100\%"; status.textContent = "Hoàn tất mô phỏng! Bạn có thể đổi số anten (32/64/128) hoặc kéo thanh trượt Beam Index để khảo sát thêm."; btn.disabled = false; }  document.getElementById("beamSlider").addEventListener("input", (e) => { const Nt = parseInt(document.getElementById("ntSelect").value); const idx = parseInt(e.target.value); document.getElementById("beamIdxLabel").textContent = `#${idx}`;
+  renderBeamPattern(Nt, idx);
+});
+
+document.getElementById("runBtn").addEventListener("click", runSimulation);
+window.addEventListener("DOMContentLoaded", () => {
+  renderBeamPattern(64, 8);
+});
+</script>
+</body>
+</html>
